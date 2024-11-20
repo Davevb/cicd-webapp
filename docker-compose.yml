@@ -1,0 +1,45 @@
+services:
+  webapp:
+    container_name: webapp
+    image: davevb/webapp
+    environment:
+      - MYSQL_URL=mysql://root:root@database:3306/animals
+    ports:
+      - 3000:3000
+    volumes:
+      - "./database:/database"
+    depends_on:
+      database:
+        condition: service_healthy
+        restart: true
+
+  tests:
+    container_name: tests
+    image: davevb/webapp
+    environment:
+      - API_URL=http://webapp:3000
+    command: yarn test
+    depends_on:
+      webapp:
+        condition: service_started
+  
+  database:
+    container_name: database
+    image: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=animals
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin -h 127.0.0.1 ping -P 3306 -proot | grep 'mysqld is alive' || exit 1"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
