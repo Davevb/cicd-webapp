@@ -7,7 +7,6 @@ const PORT = 3000
 
 function asyncMiddleware(fn) {
   return (req, res, next) => {
-    console.log("test");
     Promise.resolve(fn(req, res, next))
       .catch(next);
   };
